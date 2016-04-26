@@ -7,7 +7,9 @@ import java.util.Random;
 import data.Cluster;
 import data.Clustering;
 import data.DataClustering;
+import weka.clusterers.ClusterEvaluation;
 import weka.clusterers.Clusterer;
+import weka.clusterers.SimpleKMeans;
 import weka.core.DistanceFunction;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -17,58 +19,46 @@ public class Kmeans implements Clustering{
 	private DataClustering data;
 	private int numClust;
 	private DistanceFunction distanceFunction;
-	
-	private List<Cluster> clusters;
+	private SimpleKMeans simpleKmeans;
+	private ClusterEvaluation eval;
 	
 	public Kmeans(DataClustering data, int numClust, DistanceFunction distanceFunction) {
 		this.data = data;
 		this.numClust = numClust;
 		this.distanceFunction = distanceFunction;
-		this.clusters = new ArrayList<Cluster>();
+		this.simpleKmeans = new SimpleKMeans();
+		this.eval = new ClusterEvaluation();
 	}
 	
-	public void initialize(){
-		
-		for (int i = 0; i < numClust; i++) {
-			Cluster cluster = new Cluster(i);
-			Integer rand_number = new Random().nextInt(this.data.getInstances().numAttributes());
-			Instance centroid = this.data.getInstances().instance(rand_number);
-			cluster.setCentroid(centroid);
-			clusters.add(cluster);
-		}
-	}
 
 	@Override
 	public void buildCluster() {
-		initialize();
+		try {
+			simpleKmeans.setSeed(10);
+			simpleKmeans.setPreserveInstancesOrder(true);
+			simpleKmeans.setDistanceFunction(this.distanceFunction);
+			simpleKmeans.setNumClusters(this.numClust);
+			simpleKmeans.buildClusterer(this.data.getInstances());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override
 	public void evalCluster() {
-		Instances instances = this.data.getInstances();
-		double max = Double.MAX_VALUE;
-		double min = max;
-		double distance = 0.0;
-		do{
-			for (int i = 0; i < clusters.size(); i++) {
-				Cluster currentCluster = clusters.get(i);
-				Instance centroid = currentCluster.getCentroid();
-				for (int j = 0; j < instances.size(); j++) {
-					Instance currentInstance = instances.instance(j);
-					distance = distanceFunction.distance(centroid, currentInstance);
-					if(distance < min){
-						min = distance;
-						currentCluster.addInstance(currentInstance);
-					}
-				}
-			}
-			update_centroids(instances);
-		}while(distance != 0);
-		
+		try {
+			eval.setClusterer(this.simpleKmeans);
+			eval.evaluateClusterer(this.data.getInstances());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public void update_centroids(Instances instances){
-		// TODO
+	@Override
+	public String toString() {
+		return "\nResultado do Agrupamento por Kmeans: \n" 
+				+ this.eval.clusterResultsToString();
 	}
 
 }
