@@ -56,6 +56,7 @@ public class RedeSOM implements Clustering{
 	
 	@Override
 	public String toString() {
-		return this.eval.clusterResultsToString();
+		return "\nResultado da Rede SOM: \n" 
+				+ this.eval.clusterResultsToString();
 	}
 }

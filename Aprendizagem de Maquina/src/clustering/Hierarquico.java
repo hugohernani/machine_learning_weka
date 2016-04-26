@@ -47,6 +47,7 @@ public class Hierarquico implements Clustering{
 	
 	@Override
 	public String toString() {
-		return this.eval.clusterResultsToString();
+		return "\nResultado do Agrupamento Hierarquico: \n" 
+				+ this.eval.clusterResultsToString();
 	}
 }
